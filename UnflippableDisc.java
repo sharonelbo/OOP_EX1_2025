@@ -1,11 +1,10 @@
-public class SimpleDisc implements Disc {
-
-    private Player owner;
+public class UnflippableDisc implements Disc {
+    private final Player owner;
     private final String type;
 
-    public SimpleDisc(Player owner) {
+    public UnflippableDisc(Player owner) {
         this.owner = owner;
-        this.type = "⬤";
+        this.type = "⭕";
     }
     @Override
     public Player getOwner() {
@@ -14,7 +13,6 @@ public class SimpleDisc implements Disc {
 
     @Override
     public void setOwner(Player player) {
-        this.owner = player;
     }
 
     @Override

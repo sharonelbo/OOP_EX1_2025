@@ -1,11 +1,10 @@
-public class SimpleDisc implements Disc {
-
+public class BombDisc implements Disc {
     private Player owner;
     private final String type;
 
-    public SimpleDisc(Player owner) {
+    public BombDisc(Player owner) {
         this.owner = owner;
-        this.type = "⬤";
+        this.type = "💣";
     }
     @Override
     public Player getOwner() {
