@@ -4,17 +4,21 @@ public class GameLogic implements PlayableLogic {
 
     @Override
     public boolean locate_disc(Position a, Disc disc) {
-        return false;
+        int row = a.getRow();
+        int col = a.getCol();
+        return Position.board[row][col] == disc;
     }
 
     @Override
     public Disc getDiscAtPosition(Position position) {
-        return null;
+        int row = position.getRow();
+        int col = position.getCol();
+        return Position.board[row][col];
     }
 
     @Override
     public int getBoardSize() {
-        return 0;
+        return Position.boardSize;
     }
 
     @Override
