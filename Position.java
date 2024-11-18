@@ -17,4 +17,9 @@ public class Position {
     public int getCol() {
         return this.col;
     }
+
+    @Override
+    public String toString() {
+        return "(" + getRow() + ", " + getCol() + ")";
+    }
 }

@@ -7,6 +7,7 @@ public class SimpleDisc implements Disc {
         this.owner = owner;
         this.type = "⬤";
     }
+
     @Override
     public Player getOwner() {
         return owner;
