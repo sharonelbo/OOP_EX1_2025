@@ -8,15 +8,16 @@ public class UnflippableDisc implements Disc {
     }
     @Override
     public Player getOwner() {
-        return this.owner;
+        return owner;
     }
 
     @Override
     public void setOwner(Player player) {
+        return;
     }
 
     @Override
     public String getType() {
-        return this.type;
+        return type;
     }
 }
