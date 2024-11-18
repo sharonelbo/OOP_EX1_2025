@@ -11,6 +11,7 @@ public class GameLogic implements PlayableLogic {
         board = new Disc[BOARD_SIZE][BOARD_SIZE];
         initializeBoard();
     }
+
     @Override
     public boolean locate_disc(Position a, Disc disc) {
         int row = a.getRow();
