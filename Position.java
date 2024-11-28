@@ -10,16 +10,16 @@ public class Position {
         this.col = col;
     }
 
-    public int getRow() {
+    public int row() {
         return this.row;
     }
 
-    public int getCol() {
+    public int col() {
         return this.col;
     }
 
     @Override
     public String toString() {
-        return "(" + getRow() + ", " + getCol() + ")";
+        return "(" + row() + ", " + col() + ")";
     }
 }
