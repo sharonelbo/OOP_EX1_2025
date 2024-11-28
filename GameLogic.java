@@ -89,17 +89,34 @@ public class GameLogic implements PlayableLogic {
         return BOARD_SIZE;
     }
 
-//    @Override
-//    public List<Position> ValidMoves() {
-//        for(int row = 0; row < BOARD_SIZE; row++) {
-//            for(int col = 0; col < BOARD_SIZE; col++) {
-//                Position position = new Position(row, col);
-//                if(getDiscAtPosition(position) == null) {
-//
-//                }
-//            }
-//        }
-//    }
+    @Override
+    public List<Position> ValidMoves() {
+        Player currentPlayer = getCurrentPlayer();
+        List<Position> validMovesList = new ArrayList<>();
+
+        for (int row = 0; row < getBoardSize(); row++) {
+            for (int col = 0; col < getBoardSize(); col++) {
+                Position currentPosition = new Position(row, col);
+                if (getDiscAtPosition(currentPosition) != null) {
+                    continue;
+                }
+
+                for(int rowDirection = 0; rowDirection<DIRECTIONS.length; rowDirection++) {
+                    for(int colDirection = 0; colDirection<DIRECTIONS.length; colDirection++) {
+                        if(DIRECTIONS[rowDirection] == 0 && DIRECTIONS[colDirection] == 0) {
+                            continue;
+                        }
+                        if (isValidMove(currentPosition, DIRECTIONS[rowDirection], DIRECTIONS[colDirection], currentPlayer)) {
+                            validMovesList.add(currentPosition);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return validMovesList;
+    }
 
     @Override
     public int countFlips(Position a) {
@@ -235,35 +252,6 @@ public class GameLogic implements PlayableLogic {
             playerDigit = "2";
         }
         return playerDigit;
-    }
-
-    @Override
-    public List<Position> ValidMoves() {
-        Player currentPlayer = getCurrentPlayer();
-        List<Position> validMovesList = new ArrayList<>();
-
-        for (int row = 0; row < getBoardSize(); row++) {
-            for (int col = 0; col < getBoardSize(); col++) {
-                Position currentPosition = new Position(row, col);
-                if (getDiscAtPosition(currentPosition) != null) {
-                    continue;
-                }
-
-                for(int rowDirection = 0; rowDirection<DIRECTIONS.length; rowDirection++) {
-                    for(int colDirection = 0; colDirection<DIRECTIONS.length; colDirection++) {
-                        if(DIRECTIONS[rowDirection] == 0 && DIRECTIONS[colDirection] == 0) {
-                            continue;
-                        }
-                        if (isValidMove(currentPosition, DIRECTIONS[rowDirection], DIRECTIONS[colDirection], currentPlayer)) {
-                            validMovesList.add(currentPosition);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        return validMovesList;
     }
 
     private boolean isValidMove(Position position, int rowDirection, int colDirection, Player currentPlayer) {
