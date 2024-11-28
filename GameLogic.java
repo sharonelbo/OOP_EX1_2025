@@ -12,7 +12,6 @@ public class GameLogic implements PlayableLogic {
     private static final int[] DIRECTIONS = {-1, 0, 1};
 
 
-
     public GameLogic() {
         this.player1 = new HumanPlayer(true);
         this.player2 = new HumanPlayer(false);
@@ -33,20 +32,18 @@ public class GameLogic implements PlayableLogic {
             return false;
         }
 
-        int flips = 0;
-
         Player currentPlayer = getCurrentPlayer();
         List<Position> flippedPositions = new ArrayList<>();
 
-        for(int rowDirection = 0; rowDirection<DIRECTIONS.length; rowDirection++) {
-            for(int colDirection = 0; colDirection<DIRECTIONS.length; colDirection++) {
-                if (DIRECTIONS[rowDirection] == 0 && DIRECTIONS[colDirection] == 0) {
+        for (int rowDirection : DIRECTIONS) {
+            for (int colDirection : DIRECTIONS) {
+                if (rowDirection == 0 && colDirection == 0) {
                     continue;
                 }
 
-                int countFlips = countFlips(a, currentPlayer, DIRECTIONS[rowDirection], DIRECTIONS[colDirection]);
+                int countFlips = countFlips(a, currentPlayer, rowDirection, colDirection);
                 if (countFlips > 0) {
-                    flippedPositionsList(a, currentPlayer, DIRECTIONS[rowDirection], DIRECTIONS[colDirection], flippedPositions);
+                    flippedPositionsList(a, currentPlayer, rowDirection, colDirection, flippedPositions);
                 }
             }
         }
@@ -55,17 +52,15 @@ public class GameLogic implements PlayableLogic {
             return false;
         }
 
-        for(int i = 0; i < flippedPositions.size(); i++) {
-            Position tempPosition = flippedPositions.get(i);
+        board[a.row()][a.col()] = disc;
+        System.out.println("Player " + getPlayerDigit(currentPlayer) + " placed a " + disc.getType() + " in " + a);
+
+        for (Position tempPosition : flippedPositions) {
             getDiscAtPosition(tempPosition).setOwner(currentPlayer);
-            System.out.println("Player "+getPlayerDigit(currentPlayer)+" flipped the "+getDiscAtPosition(tempPosition)+" in "+tempPosition);
+            System.out.println("Player " + getPlayerDigit(currentPlayer) + " flipped the " + getDiscAtPosition(tempPosition).getType() + " in " + tempPosition);
         }
 
         Move move = new Move(a, disc, currentPlayer, flippedPositions);
-
-        board[a.row()][a.col()] = disc;
-        System.out.println("Player "+getPlayerDigit(currentPlayer)+" placed a "+disc.getType()+" in "+ a);
-
         gameMoves.add(move);
         isFirstPlayerTurn = !isFirstPlayerTurn;
         System.out.println();
@@ -101,12 +96,12 @@ public class GameLogic implements PlayableLogic {
                     continue;
                 }
 
-                for(int rowDirection = 0; rowDirection<DIRECTIONS.length; rowDirection++) {
-                    for(int colDirection = 0; colDirection<DIRECTIONS.length; colDirection++) {
-                        if(DIRECTIONS[rowDirection] == 0 && DIRECTIONS[colDirection] == 0) {
+                for (int rowDirection : DIRECTIONS) {
+                    for (int colDirection : DIRECTIONS) {
+                        if (rowDirection == 0 && colDirection == 0) {
                             continue;
                         }
-                        if (isValidMove(currentPosition, DIRECTIONS[rowDirection], DIRECTIONS[colDirection], currentPlayer)) {
+                        if (isValidMove(currentPosition, rowDirection, colDirection, currentPlayer)) {
                             validMovesList.add(currentPosition);
                             break;
                         }
@@ -127,13 +122,13 @@ public class GameLogic implements PlayableLogic {
         Player currentPlayer = getCurrentPlayer();
         int flips = 0;
 
-        for(int rowDirection = 0; rowDirection<DIRECTIONS.length; rowDirection++) {
-            for(int colDirection = 0; colDirection<DIRECTIONS.length; colDirection++) {
-                if(DIRECTIONS[rowDirection] == 0 && DIRECTIONS[colDirection] == 0) {
+        for (int rowDirection : DIRECTIONS) {
+            for (int colDirection : DIRECTIONS) {
+                if (rowDirection == 0 && colDirection == 0) {
                     continue;
                 }
 
-                flips += countFlips(a, currentPlayer, DIRECTIONS[rowDirection], DIRECTIONS[colDirection]);
+                flips += countFlips(a, currentPlayer, rowDirection, colDirection);
             }
         }
         return flips;
@@ -162,6 +157,53 @@ public class GameLogic implements PlayableLogic {
 
     @Override
     public boolean isGameFinished() {
+        boolean playerTurn = isFirstPlayerTurn;
+
+        isFirstPlayerTurn = true;
+        boolean player1NoValidMoves = ValidMoves().isEmpty();
+
+        isFirstPlayerTurn = false;
+        boolean player2NoValidMoves = ValidMoves().isEmpty();
+
+        isFirstPlayerTurn = playerTurn;
+        if (player1NoValidMoves || player2NoValidMoves) {
+            int player1Discs = 0;
+            int player2Discs = 0;
+
+            for (int row = 0; row < BOARD_SIZE; row++) {
+                for (int col = 0; col < BOARD_SIZE; col++) {
+                    Disc tempDisc = board[row][col];
+
+                    if (tempDisc == null) {
+                        continue;
+                    }
+                    if (tempDisc.getOwner().equals(player1)) {
+                        player1Discs++;
+                    }
+                    if (tempDisc.getOwner().equals(player2)) {
+                        player2Discs++;
+                    }
+                }
+            }
+
+            if (player1Discs > player2Discs) {
+                String winner = "1";
+                String loser = "2";
+                System.out.println("Player " + winner + " wins with " + player1Discs + " discs! Player " + loser + " had " + player2Discs + " discs.");
+                player1.wins++;
+            } else if (player1Discs < player2Discs) {
+                String winner = "2";
+                String loser = "1";
+                System.out.println("Player " + winner + " wins with " + player2Discs + " discs! Player " + loser + " had " + player1Discs + " discs.");
+                player2.wins++;
+            } else {
+                System.out.println("Tie");
+            }
+
+            System.out.println();
+            return true;
+        }
+
         return false;
     }
 
@@ -172,12 +214,31 @@ public class GameLogic implements PlayableLogic {
 
     @Override
     public void undoLastMove() {
+        System.out.println("Undoing last move:");
+        if (!gameMoves.isEmpty()) {
+            Move lastMove = gameMoves.pop();
+            Position position = lastMove.position();
+            Disc disc = lastMove.disc();
 
+            board[position.row()][position.col()] = null;
+            System.out.println("\tUndo: removing " + disc.getType() + " from " + position);
+
+            for (int i = 0; i < lastMove.getFlippedDiscsPositions().size(); i++) {
+                Position tempPosition = lastMove.getFlippedDiscsPositions().get(i);
+                getDiscAtPosition(tempPosition).setOwner(getCurrentPlayer());
+                System.out.println("\tUndo: flipping back " + getDiscAtPosition(tempPosition).getType() + " in " + tempPosition);
+            }
+
+            isFirstPlayerTurn = !isFirstPlayerTurn;
+        } else {
+            System.out.println("\tNo previous move available to undo.");
+        }
+        System.out.println();
     }
 
     private void initializeBoard() {
-        for(int row = 0; row < BOARD_SIZE; row++) {
-            for(int col = 0; col < BOARD_SIZE; col++) {
+        for (int row = 0; row < BOARD_SIZE; row++) {
+            for (int col = 0; col < BOARD_SIZE; col++) {
                 board[row][col] = null;
             }
         }
@@ -192,7 +253,7 @@ public class GameLogic implements PlayableLogic {
     }
 
     private Player getCurrentPlayer() {
-        if(isFirstPlayerTurn) {
+        if (isFirstPlayerTurn) {
             return player1;
         }
         return player2;
@@ -228,11 +289,9 @@ public class GameLogic implements PlayableLogic {
 
             if (discAtPosition == null) {
                 return 0;
-            }
-            else if (discAtPosition.getOwner().equals(currentPlayer)) {
+            } else if (discAtPosition.getOwner().equals(currentPlayer)) {
                 return flips;
-            }
-            else {
+            } else {
                 flips++;
                 row += rowDirection;
                 col += colDirection;
@@ -245,10 +304,9 @@ public class GameLogic implements PlayableLogic {
 
     private String getPlayerDigit(Player player) {
         String playerDigit = "";
-        if(player.equals(player1)){
+        if (player.equals(player1)) {
             playerDigit = "1";
-        }
-        else {
+        } else {
             playerDigit = "2";
         }
         return playerDigit;
