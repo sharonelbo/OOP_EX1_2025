@@ -1,5 +1,5 @@
 public class UnflippableDisc implements Disc {
-    private final Player owner;
+    private Player owner;
     private final String type;
 
     public UnflippableDisc(Player owner) {
@@ -14,7 +14,7 @@ public class UnflippableDisc implements Disc {
 
     @Override
     public void setOwner(Player player) {
-        return;
+        this.owner = player;
     }
 
     @Override
