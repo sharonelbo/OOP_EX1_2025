@@ -22,4 +22,13 @@ public class Position {
     public String toString() {
         return "(" + row() + ", " + col() + ")";
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Position position)) return false;
+
+        if (row != position.row) return false;
+        return col == position.col;
+    }
 }
