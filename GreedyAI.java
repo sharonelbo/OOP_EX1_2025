@@ -13,7 +13,7 @@ public class GreedyAI extends AIPlayer implements Comparator<Position> {
         if (validMoves == null || validMoves.isEmpty()) {
             return null;
         }
-        Position bestPosition = validMoves.getFirst();
+        Position bestPosition = validMoves.get(0);
         for (int i = 1; i < validMoves.size(); i++) {
             Position tempPosition = validMoves.get(i);
             if (gameStatus.countFlips(tempPosition) > gameStatus.countFlips(bestPosition)) {

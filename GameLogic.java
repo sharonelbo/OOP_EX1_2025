@@ -56,6 +56,9 @@ public class GameLogic implements PlayableLogic {
         System.out.println("Player " + getPlayerDigit(currentPlayer) + " placed a " + disc.getType() + " in " + a);
 
         for (Position tempPosition : flippedPositions) {
+            if (getDiscAtPosition(tempPosition).getType().equals("⭕")) {
+                continue;
+            }
             getDiscAtPosition(tempPosition).setOwner(currentPlayer);
             System.out.println("Player " + getPlayerDigit(currentPlayer) + " flipped the " + getDiscAtPosition(tempPosition).getType() + " in " + tempPosition);
         }
@@ -270,8 +273,9 @@ public class GameLogic implements PlayableLogic {
             if (discAtPosition == null || discAtPosition.getOwner().equals(currentPlayer)) {
                 break;
             }
-
-            flippedPositions.add(tempPosition);
+            if (!discAtPosition.getType().equals("⭕")) {
+                flippedPositions.add(tempPosition);
+            }
             row += rowDirection;
             col += colDirection;
         }
@@ -292,7 +296,9 @@ public class GameLogic implements PlayableLogic {
             } else if (discAtPosition.getOwner().equals(currentPlayer)) {
                 return flips;
             } else {
-                flips++;
+                if (!discAtPosition.getType().equals("⭕")) {
+                    flips++;
+                }
                 row += rowDirection;
                 col += colDirection;
             }
@@ -324,12 +330,14 @@ public class GameLogic implements PlayableLogic {
                 return false;
             } else if (discAtPosition.getOwner() == currentPlayer) {
                 return foundOpponent;
+            } else if (discAtPosition.getOwner() != currentPlayer && discAtPosition.getType().equals("⭕")) {
+                row += rowDirection;
+                col += colDirection;
             } else {
                 foundOpponent = true;
+                row += rowDirection;
+                col += colDirection;
             }
-
-            row += rowDirection;
-            col += colDirection;
         }
 
         return false;
