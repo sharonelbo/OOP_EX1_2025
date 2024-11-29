@@ -1,4 +1,9 @@
+/**
+ * Represents a special type of Disc known as BombDisc that when flipped also flips the Discs surrounding it
+ * Implements Disc interface
+ */
 public class BombDisc implements Disc {
+
     private Player owner;
     private final String type;
 
@@ -7,6 +12,7 @@ public class BombDisc implements Disc {
         this.type = "💣";
     }
 
+    //Getters and Setters
     @Override
     public Player getOwner() {
         return owner;
