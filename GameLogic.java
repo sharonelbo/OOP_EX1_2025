@@ -5,10 +5,10 @@ import java.util.Stack;
 public class GameLogic implements PlayableLogic {
 
     public static final int BOARD_SIZE = 8;
-    private Disc[][] board;
+    private final Disc[][] board;
     private Player player1, player2;
     private boolean isFirstPlayerTurn;
-    private Stack<Move> gameMoves = new Stack<>();
+    private final Stack<Move> gameMoves = new Stack<>();
     private static final int[] DIRECTIONS = {-1, 0, 1};
 
 
@@ -56,7 +56,7 @@ public class GameLogic implements PlayableLogic {
         System.out.println("Player " + getPlayerDigit(currentPlayer) + " placed a " + disc.getType() + " in " + a);
 
         for (Position tempPosition : flippedPositions) {
-            if (getDiscAtPosition(tempPosition).getType().equals("⭕")) {
+            if (getDiscAtPosition(tempPosition) instanceof UnflippableDisc) {
                 continue;
             }
             getDiscAtPosition(tempPosition).setOwner(currentPlayer);
@@ -193,12 +193,12 @@ public class GameLogic implements PlayableLogic {
                 String winner = "1";
                 String loser = "2";
                 System.out.println("Player " + winner + " wins with " + player1Discs + " discs! Player " + loser + " had " + player2Discs + " discs.");
-                player1.wins++;
+                player1.addWin();
             } else if (player1Discs < player2Discs) {
                 String winner = "2";
                 String loser = "1";
                 System.out.println("Player " + winner + " wins with " + player2Discs + " discs! Player " + loser + " had " + player1Discs + " discs.");
-                player2.wins++;
+                player2.addWin();
             } else {
                 System.out.println("Tie");
             }
@@ -212,6 +212,8 @@ public class GameLogic implements PlayableLogic {
 
     @Override
     public void reset() {
+        player1.reset_bombs_and_unflippedable();
+        player2.reset_bombs_and_unflippedable();
         initializeBoard();
     }
 
@@ -222,14 +224,26 @@ public class GameLogic implements PlayableLogic {
             Move lastMove = gameMoves.pop();
             Position position = lastMove.position();
             Disc disc = lastMove.disc();
+            Player player = getCurrentPlayer();
+
+            if (disc instanceof BombDisc) {
+                player.number_of_bombs++;
+            }
+
+            if (disc instanceof UnflippableDisc) {
+                player.number_of_unflippedable++;
+            }
 
             board[position.row()][position.col()] = null;
             System.out.println("\tUndo: removing " + disc.getType() + " from " + position);
 
             for (int i = 0; i < lastMove.getFlippedDiscsPositions().size(); i++) {
                 Position tempPosition = lastMove.getFlippedDiscsPositions().get(i);
-                getDiscAtPosition(tempPosition).setOwner(getCurrentPlayer());
-                System.out.println("\tUndo: flipping back " + getDiscAtPosition(tempPosition).getType() + " in " + tempPosition);
+                Disc tempDisc = getDiscAtPosition(tempPosition);
+                if (!(tempDisc instanceof UnflippableDisc)) {
+                    tempDisc.setOwner(player);
+                    System.out.println("\tUndo: flipping back " + tempDisc.getType() + " in " + tempPosition);
+                }
             }
 
             isFirstPlayerTurn = !isFirstPlayerTurn;
@@ -272,19 +286,30 @@ public class GameLogic implements PlayableLogic {
 
             if (discAtPosition == null || discAtPosition.getOwner().equals(currentPlayer)) {
                 break;
+            } else if (discAtPosition instanceof SimpleDisc) {
+                if (!flippedPositions.contains(tempPosition)) {
+                    flippedPositions.add(tempPosition);
+                }
+                row += rowDirection;
+                col += colDirection;
+            } else if (discAtPosition instanceof UnflippableDisc) {
+                row += rowDirection;
+                col += colDirection;
+            } else {
+                if (!(flippedPositions.contains(tempPosition))) {
+                    flippedPositions.add(tempPosition);
+                    BombDiscExplosion(tempPosition, currentPlayer, flippedPositions);
+                }
+                row += rowDirection;
+                col += colDirection;
             }
-            if (!discAtPosition.getType().equals("⭕")) {
-                flippedPositions.add(tempPosition);
-            }
-            row += rowDirection;
-            col += colDirection;
         }
     }
 
     private int countFlips(Position position, Player currentPlayer, int rowDirection, int colDirection) {
         int row = position.row() + rowDirection;
         int col = position.col() + colDirection;
-        int flips = 0;
+        List<Position> countedPositions = new ArrayList<>();
 
 
         while (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE) {
@@ -294,17 +319,27 @@ public class GameLogic implements PlayableLogic {
             if (discAtPosition == null) {
                 return 0;
             } else if (discAtPosition.getOwner().equals(currentPlayer)) {
-                return flips;
-            } else {
-                if (!discAtPosition.getType().equals("⭕")) {
-                    flips++;
+                return countedPositions.size();
+            } else if (discAtPosition instanceof SimpleDisc) {
+                if (!countedPositions.contains(tempPosition)) {
+                    countedPositions.add(tempPosition);
                 }
+                row += rowDirection;
+                col += colDirection;
+            } else if (discAtPosition instanceof UnflippableDisc) {
+                row += rowDirection;
+                col += colDirection;
+            } else {
+                if (!countedPositions.contains(tempPosition)) {
+                    countedPositions.add(tempPosition);
+                }
+                BombDiscExplosion(tempPosition, currentPlayer, countedPositions);
                 row += rowDirection;
                 col += colDirection;
             }
         }
 
-        return 0;
+        return countedPositions.size();
     }
 
 
@@ -330,7 +365,7 @@ public class GameLogic implements PlayableLogic {
                 return false;
             } else if (discAtPosition.getOwner() == currentPlayer) {
                 return foundOpponent;
-            } else if (discAtPosition.getOwner() != currentPlayer && discAtPosition.getType().equals("⭕")) {
+            } else if (discAtPosition.getOwner() != currentPlayer && discAtPosition instanceof UnflippableDisc) {
                 row += rowDirection;
                 col += colDirection;
             } else {
@@ -341,6 +376,36 @@ public class GameLogic implements PlayableLogic {
         }
 
         return false;
+    }
+
+    private void BombDiscExplosion(Position position, Player player, List<Position> flippedPositions) {
+        for (int rowDirection : DIRECTIONS) {
+            for (int colDirection : DIRECTIONS) {
+                if (rowDirection == 0 && colDirection == 0) {
+                    continue;
+                }
+
+                int row = position.row() + rowDirection;
+                int col = position.col() + colDirection;
+
+                if (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE) {
+                    Position tempPosition = new Position(row, col);
+                    Disc discAtPosition = getDiscAtPosition(tempPosition);
+                    if (discAtPosition != null && !discAtPosition.getOwner().equals(player)) {
+                        if (discAtPosition instanceof BombDisc) {
+                            if (!flippedPositions.contains(tempPosition)) {
+                                BombDiscExplosion(tempPosition, player, flippedPositions);
+                                flippedPositions.add(tempPosition);
+                            }
+                        } else if (discAtPosition instanceof SimpleDisc) {
+                            if (!flippedPositions.contains(tempPosition)) {
+                                flippedPositions.add(tempPosition);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }
