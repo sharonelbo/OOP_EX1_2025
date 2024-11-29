@@ -1,12 +1,15 @@
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * Represents a move of placing a Disc at the board
+ */
 public class Move {
     private Position position;
     private Disc disc;
     private Player player;
     private List<Position> flippedDiscsPositions = new ArrayList<>();
 
+    // Constructors
     public Move(Position position, Disc disc, Player player) {
         this.position = position;
         this.disc = disc;
@@ -21,6 +24,7 @@ public class Move {
         flippedDiscsPositions.addAll(positions);
     }
 
+    // Getters
     public Position position() {
         return position;
     }
