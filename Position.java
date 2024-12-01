@@ -1,9 +1,14 @@
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents a position (cell) on the game board
  */
 public class Position {
     private int row, col;
-    private static final int BOARD_SIZE = 8;
+    // saving BOARD_SIZE in this class as well allows to check if a new Position instance is valid when the instance is made
+    private static final int BOARD_SIZE = GameLogic.BOARD_SIZE;
+    private static final int[] DIRECTIONS = GameLogic.DIRECTIONS;
 
     public Position(int row, int col) {
         // check that the position is valid
@@ -37,5 +42,31 @@ public class Position {
 
         if (row != position.row) return false;
         return col == position.col;
+    }
+
+    /**
+     * The function return a list of all valid neighbor Positions (cells within a radius of 1 cell around the Position)
+     */
+    public List<Position> getNeighbors() {
+        List<Position> neighborsList = new ArrayList<>();
+
+        for (int rowDirection : DIRECTIONS) {
+            for (int colDirection: DIRECTIONS) {
+                if (rowDirection == 0 && colDirection == 0) {
+                    continue;
+                }
+                else {
+                    int row = row() + rowDirection;
+                    int col = col() + colDirection;
+                    if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) {
+                        continue;
+                    }
+
+                    neighborsList.add(new Position(row, col));
+                }
+            }
+        }
+
+        return neighborsList;
     }
 }
