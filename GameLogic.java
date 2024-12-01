@@ -7,12 +7,14 @@ import java.util.Stack;
  */
 public class GameLogic implements PlayableLogic {
 
-    public static final int BOARD_SIZE = 8;
+    // BOARD_SIZE is protected because we want to be able to use in Class Position
+    protected static final int BOARD_SIZE = 8;
     private final Disc[][] board;
     private Player player1, player2;
     private boolean isFirstPlayerTurn;
     private final Stack<Move> gameMoves = new Stack<>();
-    private static final int[] DIRECTIONS = {-1, 0, 1};
+    // DIRECTIONS is protected because we want to be able to use in Class Position
+    protected static final int[] DIRECTIONS = {-1, 0, 1};
 
 // Constructors
     public GameLogic() {
